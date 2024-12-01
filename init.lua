@@ -204,6 +204,17 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+vim.api.nvim_create_autocmd({
+  'BufNewFile',
+  'BufRead',
+}, {
+  pattern = '*.typ',
+  callback = function()
+    local buf = vim.api.nvim_get_current_buf()
+    vim.api.nvim_set_option_value('filetype', 'typst', { buf = buf })
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -456,7 +467,7 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
-      { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
+      { 'williamboman/mason.nvim', config = true, opts = { ensure_installed = { 'tinymist' } } }, -- NOTE: Must be loaded before dependants
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
@@ -606,12 +617,17 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        -- gopls = {},
         svelte = {},
         pyright = {},
         rust_analyzer = {},
         mdx_analyzer = {},
-        typst_lsp = {},
+        tinymist = {
+          single_file_support = true,
+          root_dir = function()
+            return vim.fn.getcwd()
+          end,
+          settings = {},
+        },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -708,6 +724,7 @@ require('lazy').setup({
         -- You can use 'stop_after_first' to run the first available formatter from the list
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
+        typst = { 'typstyle' },
       },
     },
   },
